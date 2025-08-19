@@ -14,7 +14,7 @@
 
 		if (generated.includes(random)) {
 			if (generated.length === Math.pow(2, length)) {
-				alert("Ran out of numbers");
+				alert('Ran out of numbers');
 				throw new Error('Ran out of numbers');
 			} else {
 				random = getRandom(length);
@@ -47,6 +47,8 @@
 	let binary = $state('00000000');
 	let decimal = $derived(binToDec(binary));
 
+	let presenting = $state(false);
+
 	let check = $state('');
 
 	let generated = $state([]);
@@ -55,6 +57,10 @@
 	let isIncorrect = $derived(!generated.includes(check) && check.length === length);
 
 	let deleteConfirm = $state(false);
+
+	let date = $state(new Date());
+
+	setInterval(() => date = new Date(), 1000);
 
 	function resetGame() {
 		length = 8;
@@ -67,54 +73,82 @@
 	onMount(() => {
 		if (localStorage.generated !== undefined) {
 			generated = JSON.parse(localStorage.generated);
-			length = generated[0].length;
+			if (generated.length > 0) {
+				length = generated[0].length;
+			}
 		}
 	});
 	$effect(() => (localStorage.generated = JSON.stringify(generated)));
 </script>
 
-<div class="flex h-screen items-center justify-center bg-sky-950 text-sky-50">
-	<div class="rounded-xl bg-indigo-700 p-8 shadow-2xl">
-		<h1>Binary Bingo!</h1>
-		<p>{binary}</p>
-		<p>{decimal}</p>
-		<label for="length">Length:</label>
-		<input
-			id="length"
-			class="rounded-xl bg-indigo-600 p-2 shadow-md"
-			type="number"
-			placeholder="length"
-			bind:value={length}
-			disabled={generated.length > 0}
-		/>
+<svelte:window
+	onkeydown={(e) => {
+		if (e.key === 'p') {
+			presenting = !presenting;
+		}
+	}}
+/>
+
+{#if !presenting}
+	<div class="flex h-screen items-center justify-center bg-sky-950 text-sky-50">
+		<div class="rounded-xl p-8 shadow-2xl bg-indigo-700">
+			<h1>Binary Bingo!</h1>
+			<p>{binary}</p>
+			<p>{decimal}</p>
+			<label for="length">Length:</label>
+			<input
+				id="length"
+				class="rounded-xl bg-indigo-600 p-2 shadow-md"
+				type="number"
+				placeholder="length"
+				bind:value={length}
+				disabled={generated.length > 0}
+			/>
+			<button
+				class="rounded-xl bg-indigo-600 p-2 shadow-md"
+				onclick={() => {
+					binary = getRandom(length);
+					generated.push(binary);
+				}}>Get New Binary</button
+			>
+			<h2>Generated numbers</h2>
+			{#each generated.toReversed() as number}
+				<div>{number}</div>
+			{/each}
+			<input
+				type="text"
+				bind:value={check}
+				placeholder="enter to check"
+				class={[
+					'rounded-xl p-2 shadow-md',
+					{ 'bg-indigo-600': !isCorrect && !isIncorrect },
+					{ 'bg-green-700': isCorrect },
+					{ 'bg-red-700': isIncorrect }
+				]}
+			/>
+			{#if deleteConfirm === false}
+				<button
+					onclick={() => (deleteConfirm = true)}
+					class="rounded-xl bg-indigo-600 p-2 shadow-md">Reset Game</button
+				>
+			{:else}
+				<button onclick={resetGame} class="rounded-xl bg-red-600 p-2 shadow-md"
+					>Are you sure?</button
+				>
+			{/if}
+		</div>
+	</div>
+{:else}
+	<div class="flex h-screen items-center justify-center bg-indigo-700 text-indigo-50 flex-col">
+		<div>Current time: {date.toLocaleTimeString()}</div>
 		<button
-			class="rounded-xl bg-indigo-600 p-2 shadow-md"
+			class="rounded-2xl bg-indigo-600 p-8 text-8xl shadow-2xl"
 			onclick={() => {
 				binary = getRandom(length);
 				generated.push(binary);
-			}}>Get New Binary</button
+			}}
 		>
-		<h2>Generated numbers</h2>
-		{#each generated.toReversed() as number}
-			<div>{number}</div>
-		{/each}
-		<input
-			type="text"
-			bind:value={check}
-			placeholder="enter to check"
-			class={[
-				'rounded-xl p-2 shadow-md',
-				{ 'bg-indigo-600': !isCorrect && !isIncorrect },
-				{ 'bg-green-700': isCorrect },
-				{ 'bg-red-700': isIncorrect }
-			]}
-		/>
-		{#if deleteConfirm === false}
-			<button onclick={() => (deleteConfirm = true)} class="rounded-xl bg-indigo-600 p-2 shadow-md"
-				>Reset Game</button
-			>
-		{:else}
-			<button onclick={resetGame} class="rounded-xl bg-red-600 p-2 shadow-md">Are you sure?</button>
-		{/if}
+			{binary}
+		</button>
 	</div>
-</div>
+{/if}
