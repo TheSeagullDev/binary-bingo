@@ -46,8 +46,8 @@
 
 	let generated = $state([]);
 
-	let isCorrect = $derived(generated.includes(check) && check.length > 0);
-	let isIncorrect = $derived(!generated.includes(check) && check.length > 0);
+	let isCorrect = $derived(generated.includes(parseInt(check)) && check.length > 0);
+	let isIncorrect = $derived(!generated.includes(parseInt(check)) && check.length > 0);
 
 	let deleteConfirm = $state(false);
 
