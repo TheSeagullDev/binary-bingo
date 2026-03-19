@@ -38,7 +38,7 @@
 	let length = $state(8);
 	let decimal = $state(0);
 	let binary = $derived(decToBin(decimal, length));
-	let max = $state(25);
+	let max = $state(75);
 
 	let presenting = $state(false);
 
